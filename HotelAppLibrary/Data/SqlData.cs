@@ -30,7 +30,7 @@ namespace HotelAppLibrary.Data
             //exist the guest
 
             GuestModel guest = _db.LoadData<GuestModel, dynamic>("dbo.spGuests_Insert",
-                new GuestModel { FirstName = firstName, LastName = lastName },
+                new { FirstName = firstName, LastName = lastName },
                 connectionStringName, true).First();
 
             RoomTypeModel roomType = _db.LoadData<RoomTypeModel, dynamic>("select * from dbo.RoomTypes where Id=@Id",
@@ -41,19 +41,19 @@ namespace HotelAppLibrary.Data
                 new { startDate, endDate, roomTypeId }, connectionStringName, true).First();
 
             var dias = (endDate - startDate).Days;
+            int guestId = guest.Id;
+            decimal TotalCost = roomType.Price * dias;
 
-            BookingModel booking = new BookingModel
-            {
-                RoomId = firstAvailableRoom.Id,
-                GuestId = guest.Id,
-                StartDate = startDate,
-                EndDate = endDate,
-                Checkedin = 0,
-                TotalCost = roomType.Price * dias
-            };
-
-            _db.SaveData<BookingModel>("dbo.spBooking_SaveBookGuest",
-                booking, connectionStringName, true);
+            _db.SaveData("dbo.spBooking_SaveBookGuest",
+                new
+                {
+                    RoomId = firstAvailableRoom.Id,
+                    GuestId = guestId,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Checkedin = 0,
+                    TotalCost = TotalCost
+                }, connectionStringName, true);
         }
 
         public List<BookingFullModel> SearchBookings(string lastName)
@@ -68,6 +68,14 @@ namespace HotelAppLibrary.Data
         {
             _db.SaveData("dbo.spBookings_CheckIn",
                 new { bookingId }, connectionStringName, true);
+        }
+
+        public RoomTypeModel GetRoomTypeById(int id)
+        {
+            return _db.LoadData<RoomTypeModel, dynamic>("dbo.spRoomTypes_GetById",
+                                                    new { id },
+                                                    connectionStringName,
+                                                    true).FirstOrDefault();
         }
     }
 }

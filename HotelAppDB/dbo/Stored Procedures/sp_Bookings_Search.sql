@@ -11,5 +11,6 @@ select [b].[Id], [b].[RoomId], [b].[GuestId], [b].[StartDate], [b].[EndDate], [b
 	inner join dbo.Rooms r on r.Id=b.RoomId
 	inner join dbo.RoomTypes rt on rt.Id = r.RoomTypeId
 		where b.StartDate=@startDate
-		and g.LastName=@lastname
+		and g.LastName like '%' +  @lastname + '%'
+		and Checkedin =0
 RETURN 0
