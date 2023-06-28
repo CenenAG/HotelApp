@@ -1,12 +1,36 @@
 using HotelAppLibrary.Data;
 using HotelAppLibrary.Databases;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+var configbuilder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json");
+
+IConfiguration config = configbuilder.Build();
+
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddTransient<IDatabaseData, SqlData>();
+
+string dbChoice = config.GetValue<string>("DatabaseChoice").ToLower();
+if (dbChoice == "sql")
+{
+    builder.Services.AddTransient<IDatabaseData, SqlData>();
+}
+else if (dbChoice == "sqlite")
+{
+    builder.Services.AddTransient<IDatabaseData, SqliteData>(); 
+}
+else
+{
+    //fallback /default value
+    builder.Services.AddTransient<IDatabaseData, SqlData>();
+}
+
 builder.Services.AddTransient<ISqlDataAccess, SqlDataAccess>();
+builder.Services.AddTransient<ISqliteDataAccess, SqliteDataAccess>();
 
 var app = builder.Build();
 
